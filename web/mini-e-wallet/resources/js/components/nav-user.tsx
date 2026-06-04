@@ -31,15 +31,15 @@ export function NavUser() {
                     <DropdownMenuTrigger asChild>
                         <SidebarMenuButton
                             size="lg"
-                            className="group h-14 rounded-2xl border border-zinc-800 bg-zinc-950/80 text-zinc-100 hover:bg-zinc-900 data-[state=open]:bg-zinc-900 group-data-[collapsible=icon]:size-12! group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:rounded-2xl group-data-[collapsible=icon]:p-0!"
+                            className="group h-14 w-full rounded-2xl border border-zinc-800 text-zinc-100 group-data-[collapsible=icon]:size-12! group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:rounded-2xl group-data-[collapsible=icon]:p-0! hover:bg-zinc-900"
                             data-test="sidebar-menu-button"
                         >
-                            <UserInfo user={auth.user} subtitle="Premium Member" />
+                            <UserInfo user={auth.user} />
                             <ChevronsUpDown className="ml-auto size-4 text-zinc-500 group-data-[collapsible=icon]:hidden" />
                         </SidebarMenuButton>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent
-                        className="w-(--radix-dropdown-menu-trigger-width) min-w-56 rounded-2xl border-zinc-800 bg-zinc-950 text-zinc-100"
+                        className="w-(--radix-dropdown-menu-trigger-width) rounded-2xl border-zinc-800 bg-zinc-950 text-zinc-100"
                         align="end"
                         side={
                             isMobile

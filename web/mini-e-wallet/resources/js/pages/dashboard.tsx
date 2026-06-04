@@ -1,4 +1,4 @@
-import { Head, Link, useForm } from '@inertiajs/react';
+import { Head, Link, useForm, usePage } from '@inertiajs/react';
 import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
 import {
@@ -19,6 +19,7 @@ import {
 } from '@/components/ui/select';
 import { Spinner } from '@/components/ui/spinner';
 import { dashboard } from '@/routes';
+import type { Auth } from '@/types';
 
 type Recipient = {
     id: number;
@@ -88,6 +89,7 @@ export default function Dashboard({
     transferForm,
     transactions,
 }: DashboardProps) {
+    const { auth } = usePage<{ auth: Auth }>().props;
     const { data, setData, post, processing, errors, reset } = useForm({
         recipient_user_id: '',
         amount: '',
@@ -108,8 +110,16 @@ export default function Dashboard({
         <>
             <Head title="Dashboard" />
             <div className="flex h-full flex-1 flex-col gap-6 rounded-xl p-4">
+                <Card>
+                    <CardHeader className="gap-2">
+                        <CardTitle className="text-2xl font-semibold tracking-tight">
+                            Selamat datang, {auth.user.name}
+                        </CardTitle>
+                    </CardHeader>
+                </Card>
+
                 <div className="grid gap-4 lg:grid-cols-[1.2fr_0.8fr]">
-                    <Card className="border-emerald-200/60 bg-gradient-to-br from-emerald-50 via-white to-cyan-50 shadow-sm dark:border-emerald-900/60 dark:from-emerald-950/40 dark:via-background dark:to-cyan-950/30">
+                    <Card className="border-emerald-200/60 bg-linear-to-br from-emerald-50 via-white to-cyan-50 shadow-sm dark:border-emerald-900/60 dark:from-emerald-950/40 dark:via-background dark:to-cyan-950/30">
                         <CardHeader>
                             <CardDescription>Mini E-Wallet</CardDescription>
                             <CardTitle className="text-3xl font-semibold tracking-tight">
@@ -119,10 +129,6 @@ export default function Dashboard({
                         <CardContent className="space-y-4">
                             <div className="text-4xl font-bold tracking-tight text-emerald-700 dark:text-emerald-400">
                                 {formatCurrency(wallet.balance)}
-                            </div>
-                            <div className="rounded-lg border border-emerald-200/70 bg-white/70 p-4 text-sm text-muted-foreground dark:border-emerald-900/60 dark:bg-emerald-950/20">
-                                Transfer berhasil akan langsung memperbarui saldo
-                                dan riwayat transaksi tanpa perlu login ulang.
                             </div>
                         </CardContent>
                     </Card>
@@ -135,7 +141,10 @@ export default function Dashboard({
                             </CardDescription>
                         </CardHeader>
                         <CardContent>
-                            <form className="space-y-5" onSubmit={submitTransfer}>
+                            <form
+                                className="space-y-5"
+                                onSubmit={submitTransfer}
+                            >
                                 <div className="space-y-2">
                                     <Label htmlFor="recipient_user_id">
                                         Penerima
@@ -188,7 +197,10 @@ export default function Dashboard({
                                         placeholder="Contoh: 50000"
                                         value={data.amount}
                                         onChange={(event) =>
-                                            setData('amount', event.target.value)
+                                            setData(
+                                                'amount',
+                                                event.target.value,
+                                            )
                                         }
                                         aria-invalid={Boolean(errors.amount)}
                                         disabled={processing}
@@ -261,49 +273,53 @@ export default function Dashboard({
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {transactions.data.map((transaction) => (
-                                            <tr
-                                                key={transaction.uuid}
-                                                className="border-b last:border-b-0"
-                                            >
-                                                <td className="px-3 py-4">
-                                                    {formatTransferDate(
-                                                        transaction.transferred_at,
-                                                    )}
-                                                </td>
-                                                <td className="px-3 py-4">
-                                                    <span
-                                                        className={
-                                                            transaction.type ===
+                                        {transactions.data.map(
+                                            (transaction) => (
+                                                <tr
+                                                    key={transaction.uuid}
+                                                    className="border-b last:border-b-0"
+                                                >
+                                                    <td className="px-3 py-4">
+                                                        {formatTransferDate(
+                                                            transaction.transferred_at,
+                                                        )}
+                                                    </td>
+                                                    <td className="px-3 py-4">
+                                                        <span
+                                                            className={
+                                                                transaction.type ===
+                                                                'incoming'
+                                                                    ? 'rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-medium text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300'
+                                                                    : 'rounded-full bg-amber-100 px-2.5 py-1 text-xs font-medium text-amber-700 dark:bg-amber-950 dark:text-amber-300'
+                                                            }
+                                                        >
+                                                            {transaction.type ===
                                                             'incoming'
-                                                                ? 'rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-medium text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300'
-                                                                : 'rounded-full bg-amber-100 px-2.5 py-1 text-xs font-medium text-amber-700 dark:bg-amber-950 dark:text-amber-300'
+                                                                ? 'Transfer masuk'
+                                                                : 'Transfer keluar'}
+                                                        </span>
+                                                    </td>
+                                                    <td className="px-3 py-4">
+                                                        {transaction.counterparty_name ??
+                                                            '-'}
+                                                    </td>
+                                                    <td className="px-3 py-4 font-mono text-xs">
+                                                        {
+                                                            transaction.reference_id
                                                         }
-                                                    >
+                                                    </td>
+                                                    <td className="px-3 py-4 text-right font-semibold">
                                                         {transaction.type ===
                                                         'incoming'
-                                                            ? 'Transfer masuk'
-                                                            : 'Transfer keluar'}
-                                                    </span>
-                                                </td>
-                                                <td className="px-3 py-4">
-                                                    {transaction.counterparty_name ??
-                                                        '-'}
-                                                </td>
-                                                <td className="px-3 py-4 font-mono text-xs">
-                                                    {transaction.reference_id}
-                                                </td>
-                                                <td className="px-3 py-4 text-right font-semibold">
-                                                    {transaction.type ===
-                                                    'incoming'
-                                                        ? '+'
-                                                        : '-'}
-                                                    {formatCurrency(
-                                                        transaction.amount,
-                                                    )}
-                                                </td>
-                                            </tr>
-                                        ))}
+                                                            ? '+'
+                                                            : '-'}
+                                                        {formatCurrency(
+                                                            transaction.amount,
+                                                        )}
+                                                    </td>
+                                                </tr>
+                                            ),
+                                        )}
                                     </tbody>
                                 </table>
                             </div>

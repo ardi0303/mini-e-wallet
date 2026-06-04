@@ -119,7 +119,7 @@ export default function Dashboard({
             <Head title="Dashboard" />
             <div className="flex h-full flex-1 flex-col gap-6 bg-zinc-950 px-5 py-6">
                 <div>
-                    <h1 className="text-4xl font-semibold tracking-tight text-zinc-50">
+                    <h1 className="text-2xl font-semibold tracking-tight text-zinc-50 sm:text-3xl lg:text-4xl">
                         Selamat datang, {auth.user.name}
                     </h1>
                 </div>
@@ -128,14 +128,14 @@ export default function Dashboard({
                     <div className="space-y-6">
                         <Card className="gap-0 rounded-[28px] border-zinc-800 bg-linear-to-r from-zinc-900 via-zinc-900 to-emerald-950/40 py-0 shadow-none">
                             <CardHeader className="px-7 pt-7 pb-4">
-                                <CardDescription className="text-sm font-medium text-zinc-400">
+                                <CardDescription className="text-sm font-medium text-zinc-400 sm:text-base">
                                     Saldo aktif Anda
                                 </CardDescription>
-                                <CardTitle className="pt-2 text-5xl font-bold tracking-tight text-emerald-400">
+                                <CardTitle className="pt-2 text-3xl font-bold tracking-tight text-emerald-400 sm:text-4xl lg:text-5xl">
                                     {formatCurrency(wallet.balance)}
                                 </CardTitle>
                             </CardHeader>
-                            <CardContent className="px-7 pb-7 text-sm text-zinc-500">
+                            <CardContent className="px-7 pb-7 text-sm text-zinc-500 sm:text-base">
                                 Mini E-Wallet siap dipakai untuk transfer dan
                                 pembaruan riwayat transaksi secara instan.
                             </CardContent>
@@ -144,7 +144,7 @@ export default function Dashboard({
                         <div className="space-y-4">
                             <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
                                 <div>
-                                    <h2 className="text-3xl font-semibold tracking-tight text-zinc-50">
+                                    <h2 className="text-2xl font-semibold tracking-tight text-zinc-50 sm:text-3xl">
                                         Riwayat Transaksi
                                     </h2>
                                 </div>
@@ -181,7 +181,7 @@ export default function Dashboard({
                                                 (transaction, index) => (
                                                     <div
                                                         key={transaction.uuid}
-                                                        className={`flex flex-col gap-4 px-6 py-5 md:flex-row md:items-center md:justify-between ${
+                                                        className={`flex flex-row justify-between gap-4 px-6 py-5 md:items-center ${
                                                             index !==
                                                             transactions.data
                                                                 .length -
@@ -207,7 +207,7 @@ export default function Dashboard({
                                                                 )}
                                                             </div>
                                                             <div className="space-y-1">
-                                                                <div className="text-xl font-medium text-zinc-100">
+                                                                <div className="text-base font-medium text-zinc-100 sm:text-lg lg:text-xl">
                                                                     {transaction.type ===
                                                                     'incoming'
                                                                         ? 'Transfer dari'
@@ -230,7 +230,7 @@ export default function Dashboard({
                                                         </div>
                                                         <div className="flex flex-col items-start gap-2 md:items-end">
                                                             <div
-                                                                className={`text-2xl font-semibold ${
+                                                                className={`text-lg font-semibold sm:text-xl lg:text-2xl ${
                                                                     transaction.type ===
                                                                     'incoming'
                                                                         ? 'text-emerald-400'
@@ -302,12 +302,8 @@ export default function Dashboard({
                                             </Button>
                                             <span className="text-zinc-300">
                                                 Halaman{' '}
-                                                {
-                                                    transactions.meta
-                                                        .current_page
-                                                }{' '}
-                                                /{' '}
-                                                {transactions.meta.last_page}
+                                                {transactions.meta.current_page}{' '}
+                                                / {transactions.meta.last_page}
                                             </span>
                                             <Button
                                                 variant="ghost"
@@ -347,7 +343,7 @@ export default function Dashboard({
 
                     <Card className="h-fit gap-0 rounded-[28px] border-zinc-800 bg-zinc-950 py-0 shadow-none">
                         <CardHeader className="px-7 pt-7 pb-5">
-                            <CardTitle className="flex items-center gap-3 text-3xl font-semibold tracking-tight text-zinc-50">
+                            <CardTitle className="flex items-center gap-3 text-2xl font-semibold tracking-tight text-zinc-50 sm:text-3xl">
                                 <Send className="size-5 text-emerald-400" />
                                 Transfer Dana
                             </CardTitle>

@@ -38,6 +38,10 @@ class User extends Authenticatable
         static::creating(function (self $user): void {
             $user->uuid ??= (string) Str::uuid();
         });
+
+        static::created(function (self $user): void {
+            $user->wallet()->firstOrCreate([], ['balance' => 0]);
+        });
     }
 
     public function wallet(): HasOne

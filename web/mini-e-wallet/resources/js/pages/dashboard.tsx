@@ -1,5 +1,13 @@
 import { Head, Link, useForm, usePage } from '@inertiajs/react';
+import {
+    ArrowDownLeft,
+    ArrowUpRight,
+    ChevronRight,
+    Filter,
+    Send,
+} from 'lucide-react';
 import InputError from '@/components/input-error';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
     Card,
@@ -109,38 +117,242 @@ export default function Dashboard({
     return (
         <>
             <Head title="Dashboard" />
-            <div className="flex h-full flex-1 flex-col gap-6 rounded-xl p-4">
-                <Card>
-                    <CardHeader className="gap-2">
-                        <CardTitle className="text-2xl font-semibold tracking-tight">
-                            Selamat datang, {auth.user.name}
-                        </CardTitle>
-                    </CardHeader>
-                </Card>
+            <div className="flex h-full flex-1 flex-col gap-6 bg-zinc-950 px-5 py-6">
+                <div>
+                    <h1 className="text-4xl font-semibold tracking-tight text-zinc-50">
+                        Selamat datang, {auth.user.name}
+                    </h1>
+                </div>
 
-                <div className="grid gap-4 lg:grid-cols-[1.2fr_0.8fr]">
-                    <Card className="border-emerald-200/60 bg-linear-to-br from-emerald-50 via-white to-cyan-50 shadow-sm dark:border-emerald-900/60 dark:from-emerald-950/40 dark:via-background dark:to-cyan-950/30">
-                        <CardHeader>
-                            <CardDescription>Mini E-Wallet</CardDescription>
-                            <CardTitle className="text-3xl font-semibold tracking-tight">
-                                Saldo aktif Anda
+                <div className="grid gap-6 xl:grid-cols-[1.9fr_0.9fr]">
+                    <div className="space-y-6">
+                        <Card className="gap-0 rounded-[28px] border-zinc-800 bg-linear-to-r from-zinc-900 via-zinc-900 to-emerald-950/40 py-0 shadow-none">
+                            <CardHeader className="px-7 pt-7 pb-4">
+                                <CardDescription className="text-sm font-medium text-zinc-400">
+                                    Saldo aktif Anda
+                                </CardDescription>
+                                <CardTitle className="pt-2 text-5xl font-bold tracking-tight text-emerald-400">
+                                    {formatCurrency(wallet.balance)}
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent className="px-7 pb-7 text-sm text-zinc-500">
+                                Mini E-Wallet siap dipakai untuk transfer dan
+                                pembaruan riwayat transaksi secara instan.
+                            </CardContent>
+                        </Card>
+
+                        <div className="space-y-4">
+                            <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                                <div>
+                                    <h2 className="text-3xl font-semibold tracking-tight text-zinc-50">
+                                        Riwayat Transaksi
+                                    </h2>
+                                </div>
+                                <Button
+                                    variant="outline"
+                                    asChild
+                                    className="h-11 rounded-full border-zinc-700 bg-zinc-900 px-5 text-zinc-200 hover:bg-zinc-800 hover:text-white"
+                                >
+                                    <Link
+                                        href={dashboard.url({
+                                            query: { sort: nextSort },
+                                        })}
+                                        preserveScroll
+                                    >
+                                        <Filter className="size-4" />
+                                        Urutkan:{' '}
+                                        {transactions.meta.sort === 'desc'
+                                            ? 'Terbaru'
+                                            : 'Terlama'}
+                                    </Link>
+                                </Button>
+                            </div>
+
+                            <Card className="gap-0 rounded-[28px] border-zinc-800 bg-zinc-950 py-0 shadow-none">
+                                <CardContent className="px-0">
+                                    {transactions.data.length === 0 ? (
+                                        <div className="px-8 py-16 text-center text-sm text-zinc-500">
+                                            Belum ada transaksi. Coba lakukan
+                                            transfer pertama Anda.
+                                        </div>
+                                    ) : (
+                                        <div>
+                                            {transactions.data.map(
+                                                (transaction, index) => (
+                                                    <div
+                                                        key={transaction.uuid}
+                                                        className={`flex flex-col gap-4 px-6 py-5 md:flex-row md:items-center md:justify-between ${
+                                                            index !==
+                                                            transactions.data
+                                                                .length -
+                                                                1
+                                                                ? 'border-b border-zinc-800'
+                                                                : ''
+                                                        }`}
+                                                    >
+                                                        <div className="flex items-start gap-4">
+                                                            <div
+                                                                className={`mt-1 flex size-11 items-center justify-center rounded-full ${
+                                                                    transaction.type ===
+                                                                    'incoming'
+                                                                        ? 'bg-emerald-950 text-emerald-400'
+                                                                        : 'bg-rose-950/70 text-rose-300'
+                                                                }`}
+                                                            >
+                                                                {transaction.type ===
+                                                                'incoming' ? (
+                                                                    <ArrowDownLeft className="size-4" />
+                                                                ) : (
+                                                                    <ArrowUpRight className="size-4" />
+                                                                )}
+                                                            </div>
+                                                            <div className="space-y-1">
+                                                                <div className="text-xl font-medium text-zinc-100">
+                                                                    {transaction.type ===
+                                                                    'incoming'
+                                                                        ? 'Transfer dari'
+                                                                        : 'Transfer ke'}{' '}
+                                                                    {transaction.counterparty_name ??
+                                                                        '-'}
+                                                                </div>
+                                                                <div className="text-sm text-zinc-400">
+                                                                    {formatTransferDate(
+                                                                        transaction.transferred_at,
+                                                                    )}
+                                                                </div>
+                                                                <div className="text-xs text-zinc-500">
+                                                                    Ref: #
+                                                                    {
+                                                                        transaction.reference_id
+                                                                    }
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <div className="flex flex-col items-start gap-2 md:items-end">
+                                                            <div
+                                                                className={`text-2xl font-semibold ${
+                                                                    transaction.type ===
+                                                                    'incoming'
+                                                                        ? 'text-emerald-400'
+                                                                        : 'text-rose-300'
+                                                                }`}
+                                                            >
+                                                                {transaction.type ===
+                                                                'incoming'
+                                                                    ? '+ '
+                                                                    : '- '}
+                                                                {formatCurrency(
+                                                                    transaction.amount,
+                                                                )}
+                                                            </div>
+                                                            <Badge
+                                                                className={`rounded-full border-0 px-3 py-1 text-[11px] ${
+                                                                    transaction.type ===
+                                                                    'incoming'
+                                                                        ? 'bg-emerald-950 text-emerald-300'
+                                                                        : 'bg-rose-950 text-rose-200'
+                                                                }`}
+                                                            >
+                                                                {transaction.type ===
+                                                                'incoming'
+                                                                    ? 'Masuk'
+                                                                    : 'Keluar'}
+                                                            </Badge>
+                                                        </div>
+                                                    </div>
+                                                ),
+                                            )}
+                                        </div>
+                                    )}
+
+                                    <div className="flex flex-col gap-4 border-t border-zinc-800 px-6 py-5 text-sm text-zinc-500 md:flex-row md:items-center md:justify-between">
+                                        <div>
+                                            {transactions.meta.total > 0
+                                                ? `Menampilkan ${transactions.meta.from}-${transactions.meta.to} dari ${transactions.meta.total} transaksi`
+                                                : 'Belum ada data transaksi'}
+                                        </div>
+                                        <div className="flex items-center gap-5">
+                                            <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                asChild={Boolean(
+                                                    transactions.meta
+                                                        .prev_page_url,
+                                                )}
+                                                disabled={
+                                                    !transactions.meta
+                                                        .prev_page_url
+                                                }
+                                                className="text-zinc-500 hover:bg-transparent hover:text-zinc-100"
+                                            >
+                                                {transactions.meta
+                                                    .prev_page_url ? (
+                                                    <Link
+                                                        href={
+                                                            transactions.meta
+                                                                .prev_page_url
+                                                        }
+                                                        preserveScroll
+                                                    >
+                                                        Sebelumnya
+                                                    </Link>
+                                                ) : (
+                                                    <span>Sebelumnya</span>
+                                                )}
+                                            </Button>
+                                            <span className="text-zinc-300">
+                                                Halaman{' '}
+                                                {
+                                                    transactions.meta
+                                                        .current_page
+                                                }{' '}
+                                                /{' '}
+                                                {transactions.meta.last_page}
+                                            </span>
+                                            <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                asChild={Boolean(
+                                                    transactions.meta
+                                                        .next_page_url,
+                                                )}
+                                                disabled={
+                                                    !transactions.meta
+                                                        .next_page_url
+                                                }
+                                                className="text-zinc-500 hover:bg-transparent hover:text-zinc-100"
+                                            >
+                                                {transactions.meta
+                                                    .next_page_url ? (
+                                                    <Link
+                                                        href={
+                                                            transactions.meta
+                                                                .next_page_url
+                                                        }
+                                                        preserveScroll
+                                                    >
+                                                        Berikutnya
+                                                        <ChevronRight className="size-4" />
+                                                    </Link>
+                                                ) : (
+                                                    <span>Berikutnya</span>
+                                                )}
+                                            </Button>
+                                        </div>
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        </div>
+                    </div>
+
+                    <Card className="h-fit gap-0 rounded-[28px] border-zinc-800 bg-zinc-950 py-0 shadow-none">
+                        <CardHeader className="px-7 pt-7 pb-5">
+                            <CardTitle className="flex items-center gap-3 text-3xl font-semibold tracking-tight text-zinc-50">
+                                <Send className="size-5 text-emerald-400" />
+                                Transfer Dana
                             </CardTitle>
                         </CardHeader>
-                        <CardContent className="space-y-4">
-                            <div className="text-4xl font-bold tracking-tight text-emerald-700 dark:text-emerald-400">
-                                {formatCurrency(wallet.balance)}
-                            </div>
-                        </CardContent>
-                    </Card>
-
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Transfer dana</CardTitle>
-                            <CardDescription>
-                                Pilih penerima lalu masukkan nominal transfer.
-                            </CardDescription>
-                        </CardHeader>
-                        <CardContent>
+                        <CardContent className="px-7 pb-7">
                             <form
                                 className="space-y-5"
                                 onSubmit={submitTransfer}
@@ -158,7 +370,7 @@ export default function Dashboard({
                                     >
                                         <SelectTrigger
                                             id="recipient_user_id"
-                                            className="w-full"
+                                            className="h-14 w-full rounded-2xl border-zinc-700 bg-zinc-900 px-4 text-base text-zinc-100"
                                             aria-invalid={Boolean(
                                                 errors.recipient_user_id,
                                             )}
@@ -194,7 +406,7 @@ export default function Dashboard({
                                         min="1"
                                         step="1"
                                         inputMode="numeric"
-                                        placeholder="Contoh: 50000"
+                                        placeholder="Rp 0"
                                         value={data.amount}
                                         onChange={(event) =>
                                             setData(
@@ -204,184 +416,24 @@ export default function Dashboard({
                                         }
                                         aria-invalid={Boolean(errors.amount)}
                                         disabled={processing}
+                                        className="h-14 rounded-2xl border-zinc-700 bg-zinc-900 px-4 text-base text-zinc-100 placeholder:text-zinc-500"
                                     />
                                     <InputError message={errors.amount} />
                                 </div>
 
                                 <Button
                                     type="submit"
-                                    className="w-full"
+                                    className="h-14 w-full rounded-full bg-emerald-400 text-zinc-950 hover:bg-emerald-300"
                                     disabled={processing}
                                 >
                                     {processing && <Spinner />}
                                     Kirim sekarang
+                                    <ChevronRight className="size-4" />
                                 </Button>
                             </form>
                         </CardContent>
                     </Card>
                 </div>
-
-                <Card>
-                    <CardHeader className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-                        <div>
-                            <CardTitle>Riwayat transaksi</CardTitle>
-                            <CardDescription>
-                                Menampilkan transfer masuk dan keluar milik akun
-                                Anda.
-                            </CardDescription>
-                        </div>
-                        <Button variant="outline" asChild>
-                            <Link
-                                href={dashboard.url({
-                                    query: { sort: nextSort },
-                                })}
-                                preserveScroll
-                            >
-                                Urutkan:{' '}
-                                {transactions.meta.sort === 'desc'
-                                    ? 'Terbaru'
-                                    : 'Terlama'}
-                            </Link>
-                        </Button>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                        {transactions.data.length === 0 ? (
-                            <div className="rounded-lg border border-dashed p-8 text-center text-sm text-muted-foreground">
-                                Belum ada transaksi. Coba lakukan transfer
-                                pertama Anda.
-                            </div>
-                        ) : (
-                            <div className="overflow-x-auto">
-                                <table className="min-w-full text-sm">
-                                    <thead className="text-left text-muted-foreground">
-                                        <tr className="border-b">
-                                            <th className="px-3 py-3 font-medium">
-                                                Tanggal
-                                            </th>
-                                            <th className="px-3 py-3 font-medium">
-                                                Jenis
-                                            </th>
-                                            <th className="px-3 py-3 font-medium">
-                                                Lawan transaksi
-                                            </th>
-                                            <th className="px-3 py-3 font-medium">
-                                                Referensi
-                                            </th>
-                                            <th className="px-3 py-3 text-right font-medium">
-                                                Nominal
-                                            </th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {transactions.data.map(
-                                            (transaction) => (
-                                                <tr
-                                                    key={transaction.uuid}
-                                                    className="border-b last:border-b-0"
-                                                >
-                                                    <td className="px-3 py-4">
-                                                        {formatTransferDate(
-                                                            transaction.transferred_at,
-                                                        )}
-                                                    </td>
-                                                    <td className="px-3 py-4">
-                                                        <span
-                                                            className={
-                                                                transaction.type ===
-                                                                'incoming'
-                                                                    ? 'rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-medium text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300'
-                                                                    : 'rounded-full bg-amber-100 px-2.5 py-1 text-xs font-medium text-amber-700 dark:bg-amber-950 dark:text-amber-300'
-                                                            }
-                                                        >
-                                                            {transaction.type ===
-                                                            'incoming'
-                                                                ? 'Transfer masuk'
-                                                                : 'Transfer keluar'}
-                                                        </span>
-                                                    </td>
-                                                    <td className="px-3 py-4">
-                                                        {transaction.counterparty_name ??
-                                                            '-'}
-                                                    </td>
-                                                    <td className="px-3 py-4 font-mono text-xs">
-                                                        {
-                                                            transaction.reference_id
-                                                        }
-                                                    </td>
-                                                    <td className="px-3 py-4 text-right font-semibold">
-                                                        {transaction.type ===
-                                                        'incoming'
-                                                            ? '+'
-                                                            : '-'}
-                                                        {formatCurrency(
-                                                            transaction.amount,
-                                                        )}
-                                                    </td>
-                                                </tr>
-                                            ),
-                                        )}
-                                    </tbody>
-                                </table>
-                            </div>
-                        )}
-
-                        <div className="flex flex-col gap-3 border-t pt-4 text-sm text-muted-foreground md:flex-row md:items-center md:justify-between">
-                            <div>
-                                {transactions.meta.total > 0
-                                    ? `Menampilkan ${transactions.meta.from}-${transactions.meta.to} dari ${transactions.meta.total} transaksi`
-                                    : 'Belum ada data transaksi'}
-                            </div>
-                            <div className="flex items-center gap-2">
-                                <Button
-                                    variant="outline"
-                                    size="sm"
-                                    asChild={Boolean(
-                                        transactions.meta.prev_page_url,
-                                    )}
-                                    disabled={!transactions.meta.prev_page_url}
-                                >
-                                    {transactions.meta.prev_page_url ? (
-                                        <Link
-                                            href={
-                                                transactions.meta.prev_page_url
-                                            }
-                                            preserveScroll
-                                        >
-                                            Sebelumnya
-                                        </Link>
-                                    ) : (
-                                        <span>Sebelumnya</span>
-                                    )}
-                                </Button>
-                                <span className="px-2">
-                                    Halaman {transactions.meta.current_page} /{' '}
-                                    {transactions.meta.last_page}
-                                </span>
-                                <Button
-                                    variant="outline"
-                                    size="sm"
-                                    asChild={Boolean(
-                                        transactions.meta.next_page_url,
-                                    )}
-                                    disabled={!transactions.meta.next_page_url}
-                                >
-                                    {transactions.meta.next_page_url ? (
-                                        <Link
-                                            href={
-                                                transactions.meta.next_page_url
-                                            }
-                                            preserveScroll
-                                        >
-                                            Berikutnya
-                                        </Link>
-                                    ) : (
-                                        <span>Berikutnya</span>
-                                    )}
-                                </Button>
-                            </div>
-                        </div>
-                    </CardContent>
-                </Card>
             </div>
         </>
     );

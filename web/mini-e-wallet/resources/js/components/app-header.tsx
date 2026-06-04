@@ -1,7 +1,5 @@
 import { Link, usePage } from '@inertiajs/react';
 import { BookOpen, Folder, LayoutGrid, Menu, Search } from 'lucide-react';
-import AppLogo from '@/components/app-logo';
-import AppLogoIcon from '@/components/app-logo-icon';
 import { Breadcrumbs } from '@/components/breadcrumbs';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -93,7 +91,9 @@ export function AppHeader({ breadcrumbs = [] }: Props) {
                                     Navigation menu
                                 </SheetTitle>
                                 <SheetHeader className="flex justify-start text-left">
-                                    <AppLogoIcon className="h-6 w-6 fill-current text-black dark:text-white" />
+                                    <span className="text-lg font-semibold tracking-tight text-emerald-400">
+                                        E Pay
+                                    </span>
                                 </SheetHeader>
                                 <div className="flex h-full flex-1 flex-col space-y-4 p-4">
                                     <div className="flex h-full flex-col justify-between text-sm">
@@ -139,7 +139,14 @@ export function AppHeader({ breadcrumbs = [] }: Props) {
                         prefetch
                         className="flex items-center space-x-2"
                     >
-                        <AppLogo />
+                        <div className="grid text-left">
+                            <span className="truncate text-xl leading-none font-bold tracking-tight text-emerald-400">
+                                E Pay
+                            </span>
+                            <span className="mt-1 truncate text-xs text-zinc-500">
+                                Simple Wallet
+                            </span>
+                        </div>
                     </Link>
 
                     {/* Desktop Navigation */}

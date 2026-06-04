@@ -1,7 +1,6 @@
 import { Link } from '@inertiajs/react';
 import {
     SidebarGroup,
-    SidebarGroupLabel,
     SidebarMenu,
     SidebarMenuButton,
     SidebarMenuItem,
@@ -13,8 +12,7 @@ export function NavMain({ items = [] }: { items: NavItem[] }) {
     const { isCurrentUrl } = useCurrentUrl();
 
     return (
-        <SidebarGroup className="px-2 py-0">
-            <SidebarGroupLabel>Platform</SidebarGroupLabel>
+        <SidebarGroup className="px-2 py-2">
             <SidebarMenu>
                 {items.map((item) => (
                     <SidebarMenuItem key={item.title}>
@@ -22,9 +20,10 @@ export function NavMain({ items = [] }: { items: NavItem[] }) {
                             asChild
                             isActive={isCurrentUrl(item.href)}
                             tooltip={{ children: item.title }}
+                            className="h-11 rounded-2xl px-4 text-zinc-300 hover:bg-zinc-900 hover:text-white data-[active=true]:bg-emerald-900/70 data-[active=true]:text-emerald-300 data-[active=true]:shadow-[inset_0_0_0_1px_rgba(16,185,129,0.18)]"
                         >
                             <Link href={item.href} prefetch>
-                                {item.icon && <item.icon />}
+                                {item.icon && <item.icon className="size-4" />}
                                 <span>{item.title}</span>
                             </Link>
                         </SidebarMenuButton>

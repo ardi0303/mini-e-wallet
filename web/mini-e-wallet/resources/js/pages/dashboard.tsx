@@ -412,7 +412,7 @@ export default function Dashboard({
                                         }
                                         aria-invalid={Boolean(errors.amount)}
                                         disabled={processing}
-                                        className="h-14 rounded-2xl border-zinc-700 bg-zinc-900 px-4 text-base text-zinc-100 placeholder:text-zinc-500"
+                                        className="rounded-2xl border-zinc-700 bg-zinc-900 px-4 text-base text-zinc-100 placeholder:text-zinc-500"
                                     />
                                     <InputError message={errors.amount} />
                                 </div>

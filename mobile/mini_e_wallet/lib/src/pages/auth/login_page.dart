@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:mini_e_wallet/src/pages/auth/services/auth_api_service.dart';
+import 'package:mini_e_wallet/src/pages/home/home_page.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -8,15 +10,85 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
+  final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  final _authApiService = const AuthApiService();
   bool _obscurePassword = true;
+  bool _isSubmitting = false;
+  String? _generalError;
 
   @override
   void dispose() {
     _emailController.dispose();
     _passwordController.dispose();
     super.dispose();
+  }
+
+  Future<void> _submitLogin() async {
+    FocusScope.of(context).unfocus();
+    setState(() {
+      _generalError = null;
+    });
+
+    if (!_formKey.currentState!.validate()) {
+      return;
+    }
+
+    setState(() {
+      _isSubmitting = true;
+    });
+
+    try {
+      final result = await _authApiService.login(
+        email: _emailController.text.trim(),
+        password: _passwordController.text,
+      );
+
+      if (!mounted) {
+        return;
+      }
+
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(result.message)));
+
+      await Navigator.of(context).pushReplacement(
+        MaterialPageRoute(builder: (_) => HomePage(userName: result.userName)),
+      );
+    } on AuthException catch (error) {
+      setState(() {
+        _generalError = error.message;
+      });
+    } catch (_) {
+      setState(() {
+        _generalError =
+            'Tidak dapat terhubung ke server. Periksa base URL API Anda.';
+      });
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isSubmitting = false;
+        });
+      }
+    }
+  }
+
+  bool _isValidEmail(String email) {
+    final trimmed = email.trim();
+    final parts = trimmed.split('@');
+
+    if (parts.length != 2) {
+      return false;
+    }
+
+    final localPart = parts[0];
+    final domainPart = parts[1];
+
+    return localPart.isNotEmpty &&
+        domainPart.isNotEmpty &&
+        !domainPart.startsWith('.') &&
+        domainPart.contains('.');
   }
 
   @override
@@ -30,128 +102,184 @@ class _LoginPageState extends State<LoginPage> {
             constraints: const BoxConstraints(maxWidth: 430),
             child: SingleChildScrollView(
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 28),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const SizedBox(height: 18),
-                  Center(
-                    child: Column(
-                      children: [
-                        Text(
-                          'E Pay',
-                          style: theme.textTheme.headlineMedium?.copyWith(
-                            color: const Color(0xFF46D89B),
-                            fontWeight: FontWeight.w700,
-                            letterSpacing: -0.4,
-                          ),
-                        ),
-                        const SizedBox(height: 10),
-                        Text(
-                          'Simple Wallet',
-                          style: theme.textTheme.titleMedium?.copyWith(
-                            color: const Color(0xFFA3AAA4),
-                            fontWeight: FontWeight.w600,
-                            letterSpacing: 0.6,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 84),
-                  Text(
-                    'Welcome back',
-                    style: theme.textTheme.headlineSmall?.copyWith(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w700,
-                      fontSize: 31,
-                      letterSpacing: -0.5,
-                    ),
-                  ),
-                  const SizedBox(height: 14),
-                  Text(
-                    'Enter your credentials to access your secure wallet.',
-                    style: theme.textTheme.titleMedium?.copyWith(
-                      color: const Color(0xFFA0A7A1),
-                      height: 1.45,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                  const SizedBox(height: 44),
-                  Text(
-                    'EMAIL ADDRESS',
-                    style: theme.textTheme.labelLarge?.copyWith(
-                      color: const Color(0xFFB5BBB6),
-                      fontWeight: FontWeight.w700,
-                      letterSpacing: 0.9,
-                    ),
-                  ),
-                  const SizedBox(height: 14),
-                  _LoginTextField(
-                    controller: _emailController,
-                    hintText: 'name@example.com',
-                    keyboardType: TextInputType.emailAddress,
-                    prefixIcon: Icons.email_outlined,
-                  ),
-                  const SizedBox(height: 28),
-                  Text(
-                    'PASSWORD',
-                    style: theme.textTheme.labelLarge?.copyWith(
-                      color: const Color(0xFFB5BBB6),
-                      fontWeight: FontWeight.w700,
-                      letterSpacing: 0.9,
-                    ),
-                  ),
-                  const SizedBox(height: 14),
-                  _LoginTextField(
-                    controller: _passwordController,
-                    hintText: '••••••••',
-                    obscureText: _obscurePassword,
-                    prefixIcon: Icons.lock_outline,
-                    suffixIcon: IconButton(
-                      onPressed: () {
-                        setState(() {
-                          _obscurePassword = !_obscurePassword;
-                        });
-                      },
-                      splashRadius: 20,
-                      icon: Icon(
-                        _obscurePassword
-                            ? Icons.visibility_outlined
-                            : Icons.visibility_off_outlined,
-                        color: const Color(0xFF858C86),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 44),
-                  SizedBox(
-                    width: double.infinity,
-                    child: FilledButton(
-                      onPressed: () {},
-                      style: FilledButton.styleFrom(
-                        backgroundColor: const Color(0xFF56D7A4),
-                        foregroundColor: const Color(0xFF163326),
-                        padding: const EdgeInsets.symmetric(vertical: 20),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(22),
-                        ),
-                        textStyle: const TextStyle(
-                          fontSize: 21,
-                          fontWeight: FontWeight.w700,
-                          letterSpacing: -0.2,
-                        ),
-                      ),
-                      child: const Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const SizedBox(height: 18),
+                    Center(
+                      child: Column(
                         children: [
-                          Text('Login'),
-                          SizedBox(width: 10),
-                          Icon(Icons.chevron_right, size: 24),
+                          Text(
+                            'E Pay',
+                            style: theme.textTheme.headlineMedium?.copyWith(
+                              color: const Color(0xFF46D89B),
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: -0.4,
+                            ),
+                          ),
+                          const SizedBox(height: 10),
+                          Text(
+                            'Simple Wallet',
+                            style: theme.textTheme.titleMedium?.copyWith(
+                              color: const Color(0xFFA3AAA4),
+                              fontWeight: FontWeight.w600,
+                              letterSpacing: 0.6,
+                            ),
+                          ),
                         ],
                       ),
                     ),
-                  ),
-                  const SizedBox(height: 24),
-                ],
+                    const SizedBox(height: 84),
+                    Text(
+                      'Welcome back',
+                      style: theme.textTheme.headlineSmall?.copyWith(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w700,
+                        fontSize: 31,
+                        letterSpacing: -0.5,
+                      ),
+                    ),
+                    const SizedBox(height: 14),
+                    Text(
+                      'Enter your credentials to access your secure wallet.',
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        color: const Color(0xFFA0A7A1),
+                        height: 1.45,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    if (_generalError != null) ...[
+                      const SizedBox(height: 18),
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(14),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF3B1F22),
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(color: const Color(0xFF704046)),
+                        ),
+                        child: Text(
+                          _generalError!,
+                          style: const TextStyle(
+                            color: Color(0xFFF4C7CC),
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                    ],
+                    const SizedBox(height: 44),
+                    Text(
+                      'EMAIL ADDRESS',
+                      style: theme.textTheme.labelLarge?.copyWith(
+                        color: const Color(0xFFB5BBB6),
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: 0.9,
+                      ),
+                    ),
+                    const SizedBox(height: 14),
+                    _LoginTextField(
+                      controller: _emailController,
+                      hintText: 'name@example.com',
+                      keyboardType: TextInputType.emailAddress,
+                      prefixIcon: Icons.email_outlined,
+                      enabled: !_isSubmitting,
+                      validator: (value) {
+                        final email = value?.trim() ?? '';
+                        if (email.isEmpty) {
+                          return 'Email wajib diisi.';
+                        }
+                        if (!_isValidEmail(email)) {
+                          return 'Format email tidak valid.';
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 28),
+                    Text(
+                      'PASSWORD',
+                      style: theme.textTheme.labelLarge?.copyWith(
+                        color: const Color(0xFFB5BBB6),
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: 0.9,
+                      ),
+                    ),
+                    const SizedBox(height: 14),
+                    _LoginTextField(
+                      controller: _passwordController,
+                      hintText: '••••••••',
+                      obscureText: _obscurePassword,
+                      prefixIcon: Icons.lock_outline,
+                      enabled: !_isSubmitting,
+                      validator: (value) {
+                        if ((value ?? '').isEmpty) {
+                          return 'Password wajib diisi.';
+                        }
+                        return null;
+                      },
+                      suffixIcon: IconButton(
+                        onPressed: _isSubmitting
+                            ? null
+                            : () {
+                                setState(() {
+                                  _obscurePassword = !_obscurePassword;
+                                });
+                              },
+                        splashRadius: 20,
+                        icon: Icon(
+                          _obscurePassword
+                              ? Icons.visibility_outlined
+                              : Icons.visibility_off_outlined,
+                          color: const Color(0xFF858C86),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 44),
+                    SizedBox(
+                      width: double.infinity,
+                      child: FilledButton(
+                        onPressed: _isSubmitting ? null : _submitLogin,
+                        style: FilledButton.styleFrom(
+                          backgroundColor: const Color(0xFF56D7A4),
+                          foregroundColor: const Color(0xFF163326),
+                          disabledBackgroundColor: const Color(
+                            0xFF56D7A4,
+                          ).withValues(alpha: 0.55),
+                          padding: const EdgeInsets.symmetric(vertical: 20),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(22),
+                          ),
+                          textStyle: const TextStyle(
+                            fontSize: 21,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: -0.2,
+                          ),
+                        ),
+                        child: _isSubmitting
+                            ? const SizedBox(
+                                height: 28,
+                                width: 28,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 3,
+                                  valueColor: AlwaysStoppedAnimation<Color>(
+                                    Color(0xFF163326),
+                                  ),
+                                ),
+                              )
+                            : const Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Text('Login'),
+                                  SizedBox(width: 10),
+                                  Icon(Icons.chevron_right, size: 24),
+                                ],
+                              ),
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                  ],
+                ),
               ),
             ),
           ),
@@ -169,6 +297,8 @@ class _LoginTextField extends StatelessWidget {
     this.keyboardType,
     this.obscureText = false,
     this.suffixIcon,
+    this.validator,
+    this.enabled = true,
   });
 
   final TextEditingController controller;
@@ -177,13 +307,17 @@ class _LoginTextField extends StatelessWidget {
   final TextInputType? keyboardType;
   final bool obscureText;
   final Widget? suffixIcon;
+  final String? Function(String?)? validator;
+  final bool enabled;
 
   @override
   Widget build(BuildContext context) {
-    return TextField(
+    return TextFormField(
       controller: controller,
       keyboardType: keyboardType,
       obscureText: obscureText,
+      validator: validator,
+      enabled: enabled,
       style: const TextStyle(
         color: Colors.white,
         fontSize: 18,
@@ -191,6 +325,7 @@ class _LoginTextField extends StatelessWidget {
       ),
       decoration: InputDecoration(
         hintText: hintText,
+        errorMaxLines: 2,
         hintStyle: const TextStyle(
           color: Color(0xFF7F8781),
           fontSize: 17,
@@ -208,9 +343,21 @@ class _LoginTextField extends StatelessWidget {
           borderRadius: BorderRadius.circular(22),
           borderSide: const BorderSide(color: Color(0xFF303632), width: 1.6),
         ),
+        disabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(22),
+          borderSide: const BorderSide(color: Color(0xFF303632), width: 1.6),
+        ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(22),
           borderSide: const BorderSide(color: Color(0xFF56D7A4), width: 1.6),
+        ),
+        errorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(22),
+          borderSide: const BorderSide(color: Color(0xFFB85A66), width: 1.6),
+        ),
+        focusedErrorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(22),
+          borderSide: const BorderSide(color: Color(0xFFB85A66), width: 1.6),
         ),
       ),
     );

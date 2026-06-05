@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:mini_e_wallet/src/pages/auth/login_page.dart';
+import 'package:mini_e_wallet/src/pages/auth/services/auth_api_service.dart';
 import 'package:mini_e_wallet/src/pages/home/models/dashboard_summary.dart';
 import 'package:mini_e_wallet/src/pages/home/services/dashboard_api_service.dart';
+import 'package:mini_e_wallet/src/widgets/app_bottom_nav.dart';
+import 'package:mini_e_wallet/src/widgets/app_top_nav.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -11,8 +15,10 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   final _dashboardApiService = const DashboardApiService();
+  final _authApiService = const AuthApiService();
   late Future<DashboardSummary> _summaryFuture;
   int _currentIndex = 0;
+  bool _isLoggingOut = false;
 
   @override
   void initState() {
@@ -26,6 +32,111 @@ class _HomePageState extends State<HomePage> {
     });
 
     await _summaryFuture;
+  }
+
+  Future<void> _handleLogout() async {
+    if (_isLoggingOut) {
+      return;
+    }
+
+    setState(() {
+      _isLoggingOut = true;
+    });
+
+    await _authApiService.logout();
+
+    if (!mounted) {
+      return;
+    }
+
+    await Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute(builder: (_) => const LoginPage()),
+      (route) => false,
+    );
+  }
+
+  Future<void> _showProfileMenu(
+    TapDownDetails details,
+    DashboardSummary summary,
+  ) async {
+    final overlay = Overlay.of(context).context.findRenderObject() as RenderBox;
+
+    final result = await showMenu<String>(
+      context: context,
+      color: const Color(0xFF232523),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(26),
+        side: const BorderSide(color: Color(0xFF343733)),
+      ),
+      position: RelativeRect.fromRect(
+        Rect.fromLTWH(
+          details.globalPosition.dx,
+          details.globalPosition.dy + 12,
+          0,
+          0,
+        ),
+        Offset.zero & overlay.size,
+      ),
+      items: [
+        PopupMenuItem<String>(
+          enabled: false,
+          padding: const EdgeInsets.fromLTRB(18, 18, 18, 14),
+          child: SizedBox(
+            width: 250,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  summary.userName,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 17,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                const SizedBox(height: 10),
+                Text(
+                  summary.userEmail,
+                  style: const TextStyle(
+                    color: Color(0xFFB3B8B4),
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        const PopupMenuDivider(height: 1),
+        PopupMenuItem<String>(
+          value: 'logout',
+          padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
+          child: Row(
+            children: [
+              const Icon(
+                Icons.logout_rounded,
+                color: Color(0xFF53D8A2),
+                size: 24,
+              ),
+              const SizedBox(width: 12),
+              Text(
+                _isLoggingOut ? 'Logging out...' : 'Log Out',
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+
+    if (result == 'logout' && mounted) {
+      await _handleLogout();
+    }
   }
 
   @override
@@ -54,19 +165,12 @@ class _HomePageState extends State<HomePage> {
               child: ListView(
                 padding: const EdgeInsets.fromLTRB(20, 16, 20, 28),
                 children: [
-                  _DashboardHeader(summary: summary),
-                  const SizedBox(height: 34),
-                  Text(
-                    'Selamat datang, ${summary.userName}',
-                    style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w700,
-                    ),
+                  AppTopNav(
+                    summary: summary,
+                    onTapDown: (details) => _showProfileMenu(details, summary),
                   ),
-                  const SizedBox(height: 28),
-                  _BalanceCard(balance: summary.walletBalance),
-                  const SizedBox(height: 24),
-                  const _TransferPromoCard(),
+                  const SizedBox(height: 34),
+                  ..._buildTabContent(context, summary),
                   const SizedBox(height: 80),
                 ],
               ),
@@ -74,101 +178,75 @@ class _HomePageState extends State<HomePage> {
           },
         ),
       ),
-      bottomNavigationBar: NavigationBarTheme(
-        data: NavigationBarThemeData(
-          backgroundColor: const Color(0xFF242624),
-          indicatorColor: const Color(0xFF146847),
-          labelTextStyle: WidgetStateProperty.resolveWith((states) {
-            final selected = states.contains(WidgetState.selected);
-            return TextStyle(
-              color: selected
-                  ? const Color(0xFF9DE3C1)
-                  : const Color(0xFFC2C7C3),
-              fontWeight: FontWeight.w700,
-              fontSize: 14,
-            );
-          }),
-        ),
-        child: NavigationBar(
-          selectedIndex: _currentIndex,
-          onDestinationSelected: (value) {
-            setState(() {
-              _currentIndex = value;
-            });
-          },
-          destinations: const [
-            NavigationDestination(
-              icon: Icon(Icons.dashboard_outlined),
-              selectedIcon: Icon(Icons.dashboard_rounded),
-              label: 'Dashboard',
-            ),
-            NavigationDestination(
-              icon: Icon(Icons.compare_arrows_rounded),
-              selectedIcon: Icon(Icons.compare_arrows_rounded),
-              label: 'Transfer',
-            ),
-            NavigationDestination(
-              icon: Icon(Icons.history),
-              selectedIcon: Icon(Icons.history),
-              label: 'History',
-            ),
-          ],
-        ),
+      bottomNavigationBar: AppBottomNav(
+        selectedIndex: _currentIndex,
+        onDestinationSelected: (value) {
+          setState(() {
+            _currentIndex = value;
+          });
+        },
       ),
     );
   }
-}
 
-class _DashboardHeader extends StatelessWidget {
-  const _DashboardHeader({required this.summary});
-
-  final DashboardSummary summary;
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Container(
-          height: 52,
-          width: 52,
-          decoration: const BoxDecoration(
-            color: Color(0xFF10583C),
-            shape: BoxShape.circle,
+  List<Widget> _buildTabContent(
+    BuildContext context,
+    DashboardSummary summary,
+  ) {
+    switch (_currentIndex) {
+      case 1:
+        return const [
+          _SectionTitle(title: 'Transfer Dana'),
+          SizedBox(height: 28),
+          _FeaturePlaceholderCard(
+            title: 'Transfer Dana',
+            description:
+                'Halaman transfer akan memakai endpoint recipients dan transfers.',
+            icon: Icons.send_outlined,
           ),
-          alignment: Alignment.center,
-          child: Text(
-            summary.initials,
-            style: const TextStyle(
-              color: Color(0xFFCFE8DA),
-              fontSize: 20,
+        ];
+      case 2:
+        return const [
+          _SectionTitle(title: 'Riwayat Transaksi'),
+          SizedBox(height: 28),
+          _FeaturePlaceholderCard(
+            title: 'History',
+            description:
+                'Halaman history akan menampilkan transaksi dengan sorting dan pagination.',
+            icon: Icons.history,
+          ),
+        ];
+      default:
+        return [
+          Text(
+            'Selamat datang, ${summary.userName}',
+            style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+              color: Colors.white,
               fontWeight: FontWeight.w700,
             ),
           ),
-        ),
-        const SizedBox(width: 14),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'E Pay',
-              style: TextStyle(
-                color: Color(0xFF46D89B),
-                fontSize: 24,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-            const SizedBox(height: 2),
-            Text(
-              'Simple Wallet',
-              style: TextStyle(
-                color: Colors.white.withValues(alpha: 0.75),
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ],
-        ),
-      ],
+          const SizedBox(height: 28),
+          _BalanceCard(balance: summary.walletBalance),
+          const SizedBox(height: 24),
+          const _TransferPromoCard(),
+        ];
+    }
+  }
+}
+
+class _SectionTitle extends StatelessWidget {
+  const _SectionTitle({required this.title});
+
+  final String title;
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      title,
+      style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+        color: Colors.white,
+        fontWeight: FontWeight.w700,
+      ),
     );
   }
 }
@@ -180,17 +258,14 @@ class _BalanceCard extends StatelessWidget {
 
   String _formatCurrency(int value) {
     final digits = value.toString();
-    final buffer = StringBuffer();
+    final segments = <String>[];
 
-    for (var index = 0; index < digits.length; index++) {
-      final reversedIndex = digits.length - index;
-      buffer.write(digits[index]);
-      if (reversedIndex > 1 && reversedIndex % 3 == 1) {
-        buffer.write('.');
-      }
+    for (var end = digits.length; end > 0; end -= 3) {
+      final start = (end - 3).clamp(0, digits.length);
+      segments.insert(0, digits.substring(start, end));
     }
 
-    return 'Rp $buffer';
+    return 'Rp ${segments.join('.')}';
   }
 
   @override
@@ -248,6 +323,48 @@ class _TransferPromoCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    return const _FeaturePromoCard(
+      title: 'Transfer Dana',
+      description: 'Kirim dan terima dana dengan cepat dan aman ke siapa saja.',
+      icon: Icons.send_outlined,
+    );
+  }
+}
+
+class _FeaturePlaceholderCard extends StatelessWidget {
+  const _FeaturePlaceholderCard({
+    required this.title,
+    required this.description,
+    required this.icon,
+  });
+
+  final String title;
+  final String description;
+  final IconData icon;
+
+  @override
+  Widget build(BuildContext context) {
+    return _FeaturePromoCard(
+      title: title,
+      description: description,
+      icon: icon,
+    );
+  }
+}
+
+class _FeaturePromoCard extends StatelessWidget {
+  const _FeaturePromoCard({
+    required this.title,
+    required this.description,
+    required this.icon,
+  });
+
+  final String title;
+  final String description;
+  final IconData icon;
+
+  @override
+  Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
@@ -261,9 +378,9 @@ class _TransferPromoCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  'Transfer Dana',
-                  style: TextStyle(
+                Text(
+                  title,
+                  style: const TextStyle(
                     color: Color(0xFF46D89B),
                     fontSize: 16,
                     fontWeight: FontWeight.w700,
@@ -271,7 +388,7 @@ class _TransferPromoCard extends StatelessWidget {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'Kirim dan terima dana dengan cepat dan aman ke siapa saja.',
+                  description,
                   style: TextStyle(
                     color: Colors.white.withValues(alpha: 0.8),
                     fontSize: 15,
@@ -290,11 +407,7 @@ class _TransferPromoCard extends StatelessWidget {
               color: const Color(0xFF0F6846),
               borderRadius: BorderRadius.circular(22),
             ),
-            child: const Icon(
-              Icons.send_outlined,
-              color: Color(0xFF63E5B1),
-              size: 34,
-            ),
+            child: Icon(icon, color: const Color(0xFF63E5B1), size: 34),
           ),
         ],
       ),

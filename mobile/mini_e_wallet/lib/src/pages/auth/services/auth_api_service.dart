@@ -65,6 +65,27 @@ class AuthApiService {
     );
   }
 
+  Future<void> logout() async {
+    final preferences = await SharedPreferences.getInstance();
+    final token = preferences.getString('auth_token');
+
+    if (token != null && token.isNotEmpty) {
+      try {
+        await http.post(
+          Uri.parse('${ApiConfig.baseUrl}/auth/logout'),
+          headers: {
+            'Accept': 'application/json',
+            'Authorization': 'Bearer $token',
+          },
+        );
+      } catch (_) {}
+    }
+
+    await preferences.remove('auth_token');
+    await preferences.remove('auth_user_email');
+    await preferences.remove('auth_user_name');
+  }
+
   Map<String, dynamic> _decodeBody(String body) {
     if (body.isEmpty) {
       return <String, dynamic>{};

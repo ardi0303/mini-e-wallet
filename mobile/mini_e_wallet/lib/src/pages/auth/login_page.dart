@@ -53,9 +53,9 @@ class _LoginPageState extends State<LoginPage> {
         context,
       ).showSnackBar(SnackBar(content: Text(result.message)));
 
-      await Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => HomePage(userName: result.userName)),
-      );
+      await Navigator.of(
+        context,
+      ).pushReplacement(MaterialPageRoute(builder: (_) => const HomePage()));
     } on AuthException catch (error) {
       setState(() {
         _generalError = error.message;

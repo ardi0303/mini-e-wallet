@@ -5,6 +5,7 @@ import 'package:mini_e_wallet/src/pages/home/models/dashboard_summary.dart';
 import 'package:mini_e_wallet/src/pages/home/services/dashboard_api_service.dart';
 import 'package:mini_e_wallet/src/widgets/app_bottom_nav.dart';
 import 'package:mini_e_wallet/src/widgets/app_top_nav.dart';
+import 'package:mini_e_wallet/src/pages/transfer/transfer_page.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -195,14 +196,10 @@ class _HomePageState extends State<HomePage> {
   ) {
     switch (_currentIndex) {
       case 1:
-        return const [
-          _SectionTitle(title: 'Transfer Dana'),
-          SizedBox(height: 28),
-          _FeaturePlaceholderCard(
-            title: 'Transfer Dana',
-            description:
-                'Halaman transfer akan memakai endpoint recipients dan transfers.',
-            icon: Icons.send_outlined,
+        return [
+          TransferPage(
+            availableBalance: summary.walletBalance,
+            onTransferSuccess: _refresh,
           ),
         ];
       case 2:

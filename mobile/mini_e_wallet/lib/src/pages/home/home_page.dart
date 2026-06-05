@@ -6,6 +6,7 @@ import 'package:mini_e_wallet/src/pages/home/services/dashboard_api_service.dart
 import 'package:mini_e_wallet/src/widgets/app_bottom_nav.dart';
 import 'package:mini_e_wallet/src/widgets/app_top_nav.dart';
 import 'package:mini_e_wallet/src/pages/transfer/transfer_page.dart';
+import 'package:mini_e_wallet/src/pages/history/history_page.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -203,16 +204,7 @@ class _HomePageState extends State<HomePage> {
           ),
         ];
       case 2:
-        return const [
-          _SectionTitle(title: 'Riwayat Transaksi'),
-          SizedBox(height: 28),
-          _FeaturePlaceholderCard(
-            title: 'History',
-            description:
-                'Halaman history akan menampilkan transaksi dengan sorting dan pagination.',
-            icon: Icons.history,
-          ),
-        ];
+        return const [HistoryPage()];
       default:
         return [
           Text(
@@ -228,23 +220,6 @@ class _HomePageState extends State<HomePage> {
           const _TransferPromoCard(),
         ];
     }
-  }
-}
-
-class _SectionTitle extends StatelessWidget {
-  const _SectionTitle({required this.title});
-
-  final String title;
-
-  @override
-  Widget build(BuildContext context) {
-    return Text(
-      title,
-      style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-        color: Colors.white,
-        fontWeight: FontWeight.w700,
-      ),
-    );
   }
 }
 
@@ -324,27 +299,6 @@ class _TransferPromoCard extends StatelessWidget {
       title: 'Transfer Dana',
       description: 'Kirim dan terima dana dengan cepat dan aman ke siapa saja.',
       icon: Icons.send_outlined,
-    );
-  }
-}
-
-class _FeaturePlaceholderCard extends StatelessWidget {
-  const _FeaturePlaceholderCard({
-    required this.title,
-    required this.description,
-    required this.icon,
-  });
-
-  final String title;
-  final String description;
-  final IconData icon;
-
-  @override
-  Widget build(BuildContext context) {
-    return _FeaturePromoCard(
-      title: title,
-      description: description,
-      icon: icon,
     );
   }
 }

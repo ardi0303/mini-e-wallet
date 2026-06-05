@@ -17,7 +17,7 @@ test('dashboard shows wallet balance and transfer recipients', function () {
         ->get(route('dashboard'))
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
-            ->component('dashboard')
+            ->component('dashboard/index')
             ->where('wallet.balance', 125000)
             ->has('transferForm.recipients', 1)
             ->where('transferForm.recipients.0.email', $recipient->email),

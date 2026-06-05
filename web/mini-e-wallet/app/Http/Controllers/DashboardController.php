@@ -24,7 +24,7 @@ class DashboardController extends Controller
             ->paginate(10)
             ->withQueryString();
 
-        return Inertia::render('dashboard', [
+        return Inertia::render('dashboard/index', [
             'wallet' => [
                 'uuid' => $user->wallet?->uuid,
                 'balance' => $user->wallet?->balance ?? 0,

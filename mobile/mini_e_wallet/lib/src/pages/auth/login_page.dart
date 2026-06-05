@@ -145,7 +145,7 @@ class _LoginPageState extends State<LoginPage> {
                         children: [
                           Text('Login'),
                           SizedBox(width: 10),
-                          Icon(Icons.arrow_forward, size: 24),
+                          Icon(Icons.chevron_right, size: 24),
                         ],
                       ),
                     ),
